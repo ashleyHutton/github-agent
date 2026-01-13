@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub Team Assistant</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Settings Panel -->
+    <div id="settings-panel" class="settings-panel">
+      <div class="settings-content">
+        <h2>Settings</h2>
+        <div class="form-group">
+          <label for="api-key">Anthropic API Key</label>
+          <input
+            type="password"
+            id="api-key"
+            placeholder="sk-ant-..."
+            autocomplete="off"
+          >
+          <p class="help-text">Your API key is stored only in your browser session and never sent to our servers.</p>
+        </div>
+        <div class="form-group">
+          <label for="system-prompt">System Prompt</label>
+          <textarea
+            id="system-prompt"
+            rows="8"
+            placeholder="Loading default prompt..."
+          ></textarea>
+          <p class="help-text">Customize how the assistant responds. Leave empty to use the default.</p>
+          <button type="button" id="reset-prompt" class="btn btn-small">Reset to Default</button>
+        </div>
+        <div class="settings-actions">
+          <button id="save-settings" class="btn btn-primary">Save & Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <h1>GitHub Team Assistant</h1>
+        <p class="subtitle">Ask questions about your team's repositories, issues, and code</p>
+      </div>
+      <button id="settings-btn" class="btn btn-icon" title="Settings">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </button>
+    </header>
+
+    <!-- Chat Container -->
+    <main class="chat-container">
+      <div id="messages" class="messages">
+        <div class="message assistant">
+          <div class="message-content">
+            <p>Hello! I'm your GitHub Team Assistant. I can help you search through your team's repositories, issues, pull requests, and code.</p>
+            <p>Try asking me questions like:</p>
+            <ul>
+              <li>"Which project had the eager loading polymorphic relationship fix?"</li>
+              <li>"Show me recent PRs related to authentication"</li>
+              <li>"What issues are open about performance?"</li>
+            </ul>
+            <p><strong>Note:</strong> Please add your Anthropic API key in Settings before starting.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Input Area -->
+    <footer class="input-area">
+      <form id="chat-form" class="chat-form">
+        <input
+          type="text"
+          id="message-input"
+          placeholder="Ask a question about your GitHub team..."
+          autocomplete="off"
+        >
+        <button type="submit" class="btn btn-primary" id="send-btn">
+          <span>Send</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </form>
+      <p class="input-hint" id="status-text">Ready</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
