@@ -9,14 +9,18 @@ const llm = require('../services/llm');
  */
 router.post('/chat', async (req, res) => {
   try {
-    const { message, apiKey, systemPrompt } = req.body;
+    const { message, apiKey, githubToken, systemPrompt } = req.body;
 
     if (!message) {
       return res.status(400).json({ error: 'Message is required' });
     }
 
     if (!apiKey) {
-      return res.status(400).json({ error: 'API key is required. Please enter your Anthropic API key in settings.' });
+      return res.status(400).json({ error: 'Anthropic API key is required. Please enter it in settings.' });
+    }
+
+    if (!githubToken) {
+      return res.status(400).json({ error: 'GitHub token is required. Please enter it in settings.' });
     }
 
     console.log(`Processing query: "${message}"`);
@@ -35,7 +39,7 @@ router.post('/chat', async (req, res) => {
     };
 
     for (const keyword of keywords) {
-      const results = await github.comprehensiveSearch(keyword);
+      const results = await github.comprehensiveSearch(githubToken, keyword);
       allResults.issues.push(...results.issues);
       allResults.pullRequests.push(...results.pullRequests);
       allResults.code.push(...results.code);
@@ -71,7 +75,11 @@ router.post('/chat', async (req, res) => {
 
     // Check for specific API key errors
     if (error.message?.includes('401') || error.message?.includes('authentication')) {
-      return res.status(401).json({ error: 'Invalid API key. Please check your Anthropic API key.' });
+      return res.status(401).json({ error: 'Invalid API key. Please check your Anthropic API key or GitHub token.' });
+    }
+
+    if (error.message?.includes('Bad credentials')) {
+      return res.status(401).json({ error: 'Invalid GitHub token. Please check your GitHub Personal Access Token.' });
     }
 
     res.status(500).json({ error: 'An error occurred processing your request. Please try again.' });
@@ -87,13 +95,19 @@ router.get('/system-prompt', (req, res) => {
 });
 
 /**
- * GET /api/repos
+ * POST /api/repos
  * List all repositories in the organization
  */
-router.get('/repos', async (req, res) => {
+router.post('/repos', async (req, res) => {
   try {
-    const repos = await github.listRepos();
-    res.json({ repos, org: github.GITHUB_ORG });
+    const { githubToken } = req.body;
+
+    if (!githubToken) {
+      return res.status(400).json({ error: 'GitHub token is required' });
+    }
+
+    const repos = await github.listRepos(githubToken);
+    res.json({ repos, org: github.DEFAULT_GITHUB_ORG });
   } catch (error) {
     console.error('Error listing repos:', error);
     res.status(500).json({ error: 'Failed to list repositories' });
@@ -106,13 +120,17 @@ router.get('/repos', async (req, res) => {
  */
 router.post('/search', async (req, res) => {
   try {
-    const { query } = req.body;
+    const { query, githubToken } = req.body;
 
     if (!query) {
       return res.status(400).json({ error: 'Query is required' });
     }
 
-    const results = await github.comprehensiveSearch(query);
+    if (!githubToken) {
+      return res.status(400).json({ error: 'GitHub token is required' });
+    }
+
+    const results = await github.comprehensiveSearch(githubToken, query);
     res.json(results);
   } catch (error) {
     console.error('Search error:', error);

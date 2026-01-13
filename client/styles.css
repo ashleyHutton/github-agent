@@ -187,6 +187,15 @@ body {
   margin-top: 0.5rem;
 }
 
+.help-text a {
+  color: var(--accent-primary);
+  text-decoration: none;
+}
+
+.help-text a:hover {
+  text-decoration: underline;
+}
+
 .settings-actions {
   display: flex;
   justify-content: flex-end;

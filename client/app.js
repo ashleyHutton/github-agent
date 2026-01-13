@@ -3,6 +3,7 @@ const settingsPanel = document.getElementById('settings-panel');
 const settingsBtn = document.getElementById('settings-btn');
 const saveSettingsBtn = document.getElementById('save-settings');
 const apiKeyInput = document.getElementById('api-key');
+const githubTokenInput = document.getElementById('github-token');
 const systemPromptInput = document.getElementById('system-prompt');
 const resetPromptBtn = document.getElementById('reset-prompt');
 const chatForm = document.getElementById('chat-form');
@@ -17,12 +18,20 @@ let defaultSystemPrompt = '';
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
-  // Load API key from sessionStorage
+  // Load saved settings from sessionStorage
   const savedApiKey = sessionStorage.getItem('anthropic_api_key');
+  const savedGithubToken = sessionStorage.getItem('github_token');
+
   if (savedApiKey) {
     apiKeyInput.value = savedApiKey;
-  } else {
-    // Show settings panel if no API key
+  }
+
+  if (savedGithubToken) {
+    githubTokenInput.value = savedGithubToken;
+  }
+
+  // Show settings panel if either key is missing
+  if (!savedApiKey || !savedGithubToken) {
     settingsPanel.classList.add('open');
   }
 
@@ -47,25 +56,34 @@ settingsBtn.addEventListener('click', () => {
 
 saveSettingsBtn.addEventListener('click', () => {
   const apiKey = apiKeyInput.value.trim();
-  if (apiKey) {
-    sessionStorage.setItem('anthropic_api_key', apiKey);
+  const githubToken = githubTokenInput.value.trim();
 
-    // Save system prompt (or clear if using default)
-    const customPrompt = systemPromptInput.value.trim();
-    if (customPrompt && customPrompt !== defaultSystemPrompt) {
-      sessionStorage.setItem('system_prompt', customPrompt);
-    } else {
-      sessionStorage.removeItem('system_prompt');
-    }
-
-    settingsPanel.classList.remove('open');
-    statusText.textContent = 'Settings saved';
-    setTimeout(() => {
-      statusText.textContent = 'Ready';
-    }, 2000);
-  } else {
+  if (!apiKey) {
     alert('Please enter your Anthropic API key');
+    return;
   }
+
+  if (!githubToken) {
+    alert('Please enter your GitHub Personal Access Token');
+    return;
+  }
+
+  sessionStorage.setItem('anthropic_api_key', apiKey);
+  sessionStorage.setItem('github_token', githubToken);
+
+  // Save system prompt (or clear if using default)
+  const customPrompt = systemPromptInput.value.trim();
+  if (customPrompt && customPrompt !== defaultSystemPrompt) {
+    sessionStorage.setItem('system_prompt', customPrompt);
+  } else {
+    sessionStorage.removeItem('system_prompt');
+  }
+
+  settingsPanel.classList.remove('open');
+  statusText.textContent = 'Settings saved';
+  setTimeout(() => {
+    statusText.textContent = 'Ready';
+  }, 2000);
 });
 
 // Reset system prompt to default
@@ -88,7 +106,9 @@ chatForm.addEventListener('submit', async (e) => {
   if (!message || isLoading) return;
 
   const apiKey = sessionStorage.getItem('anthropic_api_key');
-  if (!apiKey) {
+  const githubToken = sessionStorage.getItem('github_token');
+
+  if (!apiKey || !githubToken) {
     settingsPanel.classList.add('open');
     return;
   }
@@ -112,7 +132,7 @@ chatForm.addEventListener('submit', async (e) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ message, apiKey, systemPrompt }),
+      body: JSON.stringify({ message, apiKey, githubToken, systemPrompt }),
     });
 
     const data = await response.json();

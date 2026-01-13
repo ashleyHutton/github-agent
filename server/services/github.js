@@ -1,112 +1,173 @@
-const { execSync } = require('child_process');
+const { Octokit } = require('@octokit/rest');
 
-const GITHUB_ORG = process.env.GITHUB_ORG || 'brandnewbox';
-
-/**
- * Execute a gh CLI command and return parsed JSON
- */
-function ghCommand(args) {
-  try {
-    const result = execSync(`gh ${args}`, {
-      encoding: 'utf-8',
-      maxBuffer: 10 * 1024 * 1024, // 10MB buffer for large results
-    });
-    return JSON.parse(result);
-  } catch (error) {
-    console.error(`gh command failed: gh ${args}`);
-    console.error(error.message);
-    return null;
-  }
-}
+const DEFAULT_GITHUB_ORG = process.env.GITHUB_ORG || 'brandnewbox';
 
 /**
- * Execute a gh CLI command and return raw output
+ * Create an authenticated Octokit client
  */
-function ghCommandRaw(args) {
-  try {
-    return execSync(`gh ${args}`, {
-      encoding: 'utf-8',
-      maxBuffer: 10 * 1024 * 1024,
-    });
-  } catch (error) {
-    console.error(`gh command failed: gh ${args}`);
-    console.error(error.message);
-    return null;
-  }
+function createClient(token) {
+  return new Octokit({ auth: token });
 }
 
 /**
  * List all repositories in the organization
  */
-async function listRepos() {
-  const repos = ghCommand(`repo list ${GITHUB_ORG} --json name,description,url,updatedAt --limit 100`);
-  return repos || [];
+async function listRepos(token, org = DEFAULT_GITHUB_ORG) {
+  const octokit = createClient(token);
+
+  try {
+    const { data } = await octokit.repos.listForOrg({
+      org,
+      per_page: 100,
+      sort: 'updated',
+      direction: 'desc',
+    });
+
+    return data.map(repo => ({
+      name: repo.name,
+      description: repo.description,
+      url: repo.html_url,
+      updatedAt: repo.updated_at,
+    }));
+  } catch (error) {
+    console.error('Error listing repos:', error.message);
+    return [];
+  }
 }
 
 /**
  * Search issues across the organization
  */
-async function searchIssues(query, limit = 20) {
-  const searchQuery = `${query} org:${GITHUB_ORG}`;
-  const issues = ghCommand(`search issues "${searchQuery}" --json title,body,url,repository,state,createdAt,author --limit ${limit}`);
-  return issues || [];
+async function searchIssues(token, query, org = DEFAULT_GITHUB_ORG, limit = 20) {
+  const octokit = createClient(token);
+  const searchQuery = `${query} org:${org} is:issue`;
+
+  try {
+    const { data } = await octokit.search.issuesAndPullRequests({
+      q: searchQuery,
+      per_page: limit,
+      sort: 'updated',
+      order: 'desc',
+    });
+
+    return data.items.map(issue => ({
+      title: issue.title,
+      body: issue.body,
+      url: issue.html_url,
+      repository: {
+        nameWithOwner: issue.repository_url.split('/').slice(-2).join('/'),
+      },
+      state: issue.state,
+      createdAt: issue.created_at,
+      author: { login: issue.user?.login },
+    }));
+  } catch (error) {
+    console.error('Error searching issues:', error.message);
+    return [];
+  }
 }
 
 /**
  * Search pull requests across the organization
  */
-async function searchPullRequests(query, limit = 20) {
-  const searchQuery = `${query} org:${GITHUB_ORG}`;
-  const prs = ghCommand(`search prs "${searchQuery}" --json title,body,url,repository,state,createdAt,author --limit ${limit}`);
-  return prs || [];
+async function searchPullRequests(token, query, org = DEFAULT_GITHUB_ORG, limit = 20) {
+  const octokit = createClient(token);
+  const searchQuery = `${query} org:${org} is:pr`;
+
+  try {
+    const { data } = await octokit.search.issuesAndPullRequests({
+      q: searchQuery,
+      per_page: limit,
+      sort: 'updated',
+      order: 'desc',
+    });
+
+    return data.items.map(pr => ({
+      title: pr.title,
+      body: pr.body,
+      url: pr.html_url,
+      repository: {
+        nameWithOwner: pr.repository_url.split('/').slice(-2).join('/'),
+      },
+      state: pr.state,
+      createdAt: pr.created_at,
+      author: { login: pr.user?.login },
+    }));
+  } catch (error) {
+    console.error('Error searching PRs:', error.message);
+    return [];
+  }
 }
 
 /**
  * Search code across the organization
  */
-async function searchCode(query, limit = 20) {
-  const searchQuery = `${query} org:${GITHUB_ORG}`;
-  const code = ghCommand(`search code "${searchQuery}" --json path,repository,url --limit ${limit}`);
-  return code || [];
+async function searchCode(token, query, org = DEFAULT_GITHUB_ORG, limit = 20) {
+  const octokit = createClient(token);
+  const searchQuery = `${query} org:${org}`;
+
+  try {
+    const { data } = await octokit.search.code({
+      q: searchQuery,
+      per_page: limit,
+    });
+
+    return data.items.map(file => ({
+      path: file.path,
+      repository: {
+        nameWithOwner: file.repository.full_name,
+      },
+      url: file.html_url,
+    }));
+  } catch (error) {
+    console.error('Error searching code:', error.message);
+    return [];
+  }
 }
 
 /**
  * Search commits across the organization
  */
-async function searchCommits(query, limit = 20) {
-  const searchQuery = `${query} org:${GITHUB_ORG}`;
-  const commits = ghCommand(`search commits "${searchQuery}" --json sha,commit,repository,url --limit ${limit}`);
-  return commits || [];
-}
+async function searchCommits(token, query, org = DEFAULT_GITHUB_ORG, limit = 20) {
+  const octokit = createClient(token);
+  const searchQuery = `${query} org:${org}`;
 
-/**
- * Get details of a specific issue or PR
- */
-async function getIssueDetails(repoFullName, issueNumber) {
-  const issue = ghCommand(`issue view ${issueNumber} --repo ${repoFullName} --json title,body,comments,url,state`);
-  return issue;
-}
+  try {
+    const { data } = await octokit.search.commits({
+      q: searchQuery,
+      per_page: limit,
+      sort: 'committer-date',
+      order: 'desc',
+    });
 
-/**
- * Get file contents from a repository
- */
-async function getFileContents(repoFullName, filePath) {
-  const contents = ghCommandRaw(`api repos/${repoFullName}/contents/${filePath} --jq '.content' | base64 -d`);
-  return contents;
+    return data.items.map(item => ({
+      sha: item.sha,
+      commit: {
+        message: item.commit.message,
+      },
+      repository: {
+        nameWithOwner: item.repository.full_name,
+      },
+      url: item.html_url,
+    }));
+  } catch (error) {
+    console.error('Error searching commits:', error.message);
+    return [];
+  }
 }
 
 /**
  * Perform a comprehensive search across all GitHub data types
  */
-async function comprehensiveSearch(query) {
-  console.log(`Searching GitHub for: "${query}" in org:${GITHUB_ORG}`);
+async function comprehensiveSearch(token, query, org = DEFAULT_GITHUB_ORG) {
+  console.log(`Searching GitHub for: "${query}" in org:${org}`);
 
   // Run searches in parallel
   const [issues, prs, code, commits] = await Promise.all([
-    searchIssues(query, 10),
-    searchPullRequests(query, 10),
-    searchCode(query, 10),
-    searchCommits(query, 5),
+    searchIssues(token, query, org, 10),
+    searchPullRequests(token, query, org, 10),
+    searchCode(token, query, org, 10),
+    searchCommits(token, query, org, 5),
   ]);
 
   return {
@@ -129,8 +190,6 @@ module.exports = {
   searchPullRequests,
   searchCode,
   searchCommits,
-  getIssueDetails,
-  getFileContents,
   comprehensiveSearch,
-  GITHUB_ORG,
+  DEFAULT_GITHUB_ORG,
 };
