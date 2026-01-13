@@ -22,6 +22,12 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/index.html'));
 });
 
-app.listen(PORT, () => {
-  console.log(`GitHub Agent server running at http://localhost:${PORT}`);
-});
+// Start server for local development
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`GitHub Agent server running at http://localhost:${PORT}`);
+  });
+}
+
+// Export for Vercel serverless
+module.exports = app;
