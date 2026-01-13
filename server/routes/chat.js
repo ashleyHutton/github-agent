@@ -9,7 +9,8 @@ const llm = require('../services/llm');
  */
 router.post('/chat', async (req, res) => {
   try {
-    const { message, apiKey, githubToken, systemPrompt } = req.body;
+    const { message, apiKey, githubToken, githubOrg, systemPrompt } = req.body;
+    const org = githubOrg || github.DEFAULT_GITHUB_ORG;
 
     if (!message) {
       return res.status(400).json({ error: 'Message is required' });
@@ -39,7 +40,7 @@ router.post('/chat', async (req, res) => {
     };
 
     for (const keyword of keywords) {
-      const results = await github.comprehensiveSearch(githubToken, keyword);
+      const results = await github.comprehensiveSearch(githubToken, keyword, org);
       allResults.issues.push(...results.issues);
       allResults.pullRequests.push(...results.pullRequests);
       allResults.code.push(...results.code);
@@ -63,7 +64,7 @@ router.post('/chat', async (req, res) => {
 
     // Step 3: Generate response using Claude
     console.log('Generating response...');
-    const response = await llm.generateResponse(apiKey, message, allResults, systemPrompt);
+    const response = await llm.generateResponse(apiKey, message, allResults, org, systemPrompt);
 
     res.json({
       response,
@@ -91,7 +92,7 @@ router.post('/chat', async (req, res) => {
  * Get the default system prompt
  */
 router.get('/system-prompt', (req, res) => {
-  res.json({ systemPrompt: llm.DEFAULT_SYSTEM_PROMPT });
+  res.json({ systemPrompt: llm.getDefaultSystemPrompt() });
 });
 
 /**

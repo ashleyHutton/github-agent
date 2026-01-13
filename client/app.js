@@ -4,6 +4,7 @@ const settingsBtn = document.getElementById('settings-btn');
 const saveSettingsBtn = document.getElementById('save-settings');
 const apiKeyInput = document.getElementById('api-key');
 const githubTokenInput = document.getElementById('github-token');
+const githubOrgInput = document.getElementById('github-org');
 const systemPromptInput = document.getElementById('system-prompt');
 const resetPromptBtn = document.getElementById('reset-prompt');
 const chatForm = document.getElementById('chat-form');
@@ -18,9 +19,10 @@ let defaultSystemPrompt = '';
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
-  // Load saved settings from sessionStorage
-  const savedApiKey = sessionStorage.getItem('anthropic_api_key');
-  const savedGithubToken = sessionStorage.getItem('github_token');
+  // Load saved settings from localStorage
+  const savedApiKey = localStorage.getItem('anthropic_api_key');
+  const savedGithubToken = localStorage.getItem('github_token');
+  const savedGithubOrg = localStorage.getItem('github_org');
 
   if (savedApiKey) {
     apiKeyInput.value = savedApiKey;
@@ -30,24 +32,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     githubTokenInput.value = savedGithubToken;
   }
 
+  if (savedGithubOrg) {
+    githubOrgInput.value = savedGithubOrg;
+  }
+
   // Show settings panel if either key is missing
   if (!savedApiKey || !savedGithubToken) {
     settingsPanel.classList.add('open');
   }
 
   // Load default system prompt from server
+  await loadDefaultSystemPrompt();
+});
+
+async function loadDefaultSystemPrompt() {
   try {
     const response = await fetch('/api/system-prompt');
     const data = await response.json();
     defaultSystemPrompt = data.systemPrompt;
 
     // Load saved prompt or use default
-    const savedPrompt = sessionStorage.getItem('system_prompt');
+    const savedPrompt = localStorage.getItem('system_prompt');
     systemPromptInput.value = savedPrompt || defaultSystemPrompt;
   } catch (error) {
     console.error('Failed to load default system prompt:', error);
   }
-});
+}
 
 // Settings Panel
 settingsBtn.addEventListener('click', () => {
@@ -57,6 +67,7 @@ settingsBtn.addEventListener('click', () => {
 saveSettingsBtn.addEventListener('click', () => {
   const apiKey = apiKeyInput.value.trim();
   const githubToken = githubTokenInput.value.trim();
+  const githubOrg = githubOrgInput.value.trim() || 'brandnewbox';
 
   if (!apiKey) {
     alert('Please enter your Anthropic API key');
@@ -68,15 +79,16 @@ saveSettingsBtn.addEventListener('click', () => {
     return;
   }
 
-  sessionStorage.setItem('anthropic_api_key', apiKey);
-  sessionStorage.setItem('github_token', githubToken);
+  localStorage.setItem('anthropic_api_key', apiKey);
+  localStorage.setItem('github_token', githubToken);
+  localStorage.setItem('github_org', githubOrg);
 
   // Save system prompt (or clear if using default)
   const customPrompt = systemPromptInput.value.trim();
   if (customPrompt && customPrompt !== defaultSystemPrompt) {
-    sessionStorage.setItem('system_prompt', customPrompt);
+    localStorage.setItem('system_prompt', customPrompt);
   } else {
-    sessionStorage.removeItem('system_prompt');
+    localStorage.removeItem('system_prompt');
   }
 
   settingsPanel.classList.remove('open');
@@ -105,8 +117,8 @@ chatForm.addEventListener('submit', async (e) => {
   const message = messageInput.value.trim();
   if (!message || isLoading) return;
 
-  const apiKey = sessionStorage.getItem('anthropic_api_key');
-  const githubToken = sessionStorage.getItem('github_token');
+  const apiKey = localStorage.getItem('anthropic_api_key');
+  const githubToken = localStorage.getItem('github_token');
 
   if (!apiKey || !githubToken) {
     settingsPanel.classList.add('open');
@@ -125,14 +137,15 @@ chatForm.addEventListener('submit', async (e) => {
 
   try {
     // Get custom system prompt if set
-    const systemPrompt = sessionStorage.getItem('system_prompt') || null;
+    const systemPrompt = localStorage.getItem('system_prompt') || null;
+    const githubOrg = localStorage.getItem('github_org') || 'brandnewbox';
 
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ message, apiKey, githubToken, systemPrompt }),
+      body: JSON.stringify({ message, apiKey, githubToken, githubOrg, systemPrompt }),
     });
 
     const data = await response.json();

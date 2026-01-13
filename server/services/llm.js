@@ -1,11 +1,37 @@
 const Anthropic = require('@anthropic-ai/sdk');
-const { GITHUB_ORG } = require('./github');
+const { DEFAULT_GITHUB_ORG } = require('./github');
 
 /**
  * Create a Claude client with the provided API key
  */
 function createClient(apiKey) {
   return new Anthropic({ apiKey });
+}
+
+const DEFAULT_SYSTEM_PROMPT = `You are an expert assistant for the configured GitHub organization with deep knowledge of its codebase, practices, and history.
+
+Your role is to search for and provide the most relevant information related to questions about the organization's projects.
+
+When answering questions:
+1. Base your answers on the search results provided
+2. Always include relevant links to GitHub resources (issues, PRs, code files)
+3. If you can't find relevant information, say so clearly
+4. Be concise but thorough
+5. Format your responses using Markdown for readability
+
+**Important: When recommending approaches, patterns, or tools:**
+- Prioritize MORE RECENT usage over frequency of occurrence
+- The organization's practices evolve over time—newer projects reflect current best practices
+- If an older pattern appears more frequently but a newer approach exists in recent projects, recommend the newer approach
+- Always note when a practice has changed (e.g., "While older projects used X, the team has since adopted Y")
+
+If the search results don't contain relevant information to answer the question, suggest what the user might search for instead.`;
+
+/**
+ * Get the default system prompt
+ */
+function getDefaultSystemPrompt() {
+  return DEFAULT_SYSTEM_PROMPT;
 }
 
 /**
@@ -70,34 +96,15 @@ function formatGitHubContext(searchResults) {
   return context;
 }
 
-const DEFAULT_SYSTEM_PROMPT = `You are an expert assistant for the "${GITHUB_ORG}" organization with deep knowledge of its codebase, practices, and history.
-
-Your role is to search for and provide the most relevant information related to questions about the organization's projects.
-
-When answering questions:
-1. Base your answers on the search results provided
-2. Always include relevant links to GitHub resources (issues, PRs, code files)
-3. If you can't find relevant information, say so clearly
-4. Be concise but thorough
-5. Format your responses using Markdown for readability
-
-**Important: When recommending approaches, patterns, or tools:**
-- Prioritize MORE RECENT usage over frequency of occurrence
-- The organization's practices evolve over time—newer projects reflect current best practices
-- If an older pattern appears more frequently but a newer approach exists in recent projects, recommend the newer approach
-- Always note when a practice has changed (e.g., "While older projects used X, the team has since adopted Y")
-
-If the search results don't contain relevant information to answer the question, suggest what the user might search for instead.`;
-
 /**
  * Generate a response using Claude
  */
-async function generateResponse(apiKey, userQuery, searchResults, customSystemPrompt = null) {
+async function generateResponse(apiKey, userQuery, searchResults, org = DEFAULT_GITHUB_ORG, customSystemPrompt = null) {
   const client = createClient(apiKey);
 
   const githubContext = formatGitHubContext(searchResults);
 
-  const systemPrompt = customSystemPrompt || DEFAULT_SYSTEM_PROMPT;
+  const systemPrompt = customSystemPrompt || getDefaultSystemPrompt(org);
 
   const userMessage = `# User Question
 ${userQuery}
@@ -153,5 +160,5 @@ Focus on technical terms, feature names, or specific concepts mentioned.`,
 module.exports = {
   generateResponse,
   extractSearchKeywords,
-  DEFAULT_SYSTEM_PROMPT,
+  getDefaultSystemPrompt,
 };
