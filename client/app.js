@@ -190,8 +190,10 @@ function addMessage(content, role, searchSummary = null, keywords = null) {
   messageDiv.appendChild(contentDiv);
   messagesContainer.appendChild(messageDiv);
 
-  // Scroll to bottom
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  // Scroll to bottom smoothly
+  requestAnimationFrame(() => {
+    messageDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  });
 
   return messageDiv;
 }
@@ -214,7 +216,11 @@ function addLoadingMessage() {
 
   messageDiv.appendChild(contentDiv);
   messagesContainer.appendChild(messageDiv);
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+  // Scroll to bottom smoothly
+  requestAnimationFrame(() => {
+    messageDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  });
 
   return messageDiv;
 }
