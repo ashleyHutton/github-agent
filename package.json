@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "A chat interface to query your GitHub team using Claude AI",
   "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",
