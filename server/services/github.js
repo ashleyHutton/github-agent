@@ -1,6 +1,6 @@
-const { Octokit } = require('@octokit/rest');
+import { Octokit } from '@octokit/rest';
 
-const DEFAULT_GITHUB_ORG = process.env.GITHUB_ORG || 'brandnewbox';
+export const DEFAULT_GITHUB_ORG = process.env.GITHUB_ORG || 'brandnewbox';
 
 /**
  * Create an authenticated Octokit client
@@ -12,7 +12,7 @@ function createClient(token) {
 /**
  * List all repositories in the organization
  */
-async function listRepos(token, org = DEFAULT_GITHUB_ORG) {
+export async function listRepos(token, org = DEFAULT_GITHUB_ORG) {
   const octokit = createClient(token);
 
   try {
@@ -38,7 +38,7 @@ async function listRepos(token, org = DEFAULT_GITHUB_ORG) {
 /**
  * Search issues across the organization
  */
-async function searchIssues(token, query, org = DEFAULT_GITHUB_ORG, limit = 20) {
+export async function searchIssues(token, query, org = DEFAULT_GITHUB_ORG, limit = 20) {
   const octokit = createClient(token);
   const searchQuery = `${query} org:${org} is:issue`;
 
@@ -70,7 +70,7 @@ async function searchIssues(token, query, org = DEFAULT_GITHUB_ORG, limit = 20) 
 /**
  * Search pull requests across the organization
  */
-async function searchPullRequests(token, query, org = DEFAULT_GITHUB_ORG, limit = 20) {
+export async function searchPullRequests(token, query, org = DEFAULT_GITHUB_ORG, limit = 20) {
   const octokit = createClient(token);
   const searchQuery = `${query} org:${org} is:pr`;
 
@@ -102,7 +102,7 @@ async function searchPullRequests(token, query, org = DEFAULT_GITHUB_ORG, limit 
 /**
  * Search code across the organization
  */
-async function searchCode(token, query, org = DEFAULT_GITHUB_ORG, limit = 20) {
+export async function searchCode(token, query, org = DEFAULT_GITHUB_ORG, limit = 20) {
   const octokit = createClient(token);
   const searchQuery = `${query} org:${org}`;
 
@@ -128,7 +128,7 @@ async function searchCode(token, query, org = DEFAULT_GITHUB_ORG, limit = 20) {
 /**
  * Search commits across the organization
  */
-async function searchCommits(token, query, org = DEFAULT_GITHUB_ORG, limit = 20) {
+export async function searchCommits(token, query, org = DEFAULT_GITHUB_ORG, limit = 20) {
   const octokit = createClient(token);
   const searchQuery = `${query} org:${org}`;
 
@@ -159,7 +159,7 @@ async function searchCommits(token, query, org = DEFAULT_GITHUB_ORG, limit = 20)
 /**
  * Perform a comprehensive search across all GitHub data types
  */
-async function comprehensiveSearch(token, query, org = DEFAULT_GITHUB_ORG) {
+export async function comprehensiveSearch(token, query, org = DEFAULT_GITHUB_ORG) {
   console.log(`Searching GitHub for: "${query}" in org:${org}`);
 
   // Run searches in parallel
@@ -183,13 +183,3 @@ async function comprehensiveSearch(token, query, org = DEFAULT_GITHUB_ORG) {
     }
   };
 }
-
-module.exports = {
-  listRepos,
-  searchIssues,
-  searchPullRequests,
-  searchCode,
-  searchCommits,
-  comprehensiveSearch,
-  DEFAULT_GITHUB_ORG,
-};

@@ -1,7 +1,8 @@
-const express = require('express');
+import express from 'express';
+import * as github from '../services/github.js';
+import * as llm from '../services/llm.js';
+
 const router = express.Router();
-const github = require('../services/github');
-const llm = require('../services/llm');
 
 /**
  * POST /api/chat
@@ -153,4 +154,4 @@ function deduplicateByUrl(items) {
   });
 }
 
-module.exports = router;
+export default router;

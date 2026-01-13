@@ -1,6 +1,10 @@
-const express = require('express');
-const path = require('path');
-const chatRoutes = require('./routes/chat');
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import chatRoutes from './routes/chat.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -30,4 +34,4 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Export for Vercel serverless
-module.exports = app;
+export default app;

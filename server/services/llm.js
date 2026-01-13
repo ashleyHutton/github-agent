@@ -1,5 +1,5 @@
-const Anthropic = require('@anthropic-ai/sdk');
-const { DEFAULT_GITHUB_ORG } = require('./github');
+import Anthropic from '@anthropic-ai/sdk';
+import { DEFAULT_GITHUB_ORG } from './github.js';
 
 /**
  * Create a Claude client with the provided API key
@@ -30,7 +30,7 @@ If the search results don't contain relevant information to answer the question,
 /**
  * Get the default system prompt
  */
-function getDefaultSystemPrompt() {
+export function getDefaultSystemPrompt() {
   return DEFAULT_SYSTEM_PROMPT;
 }
 
@@ -99,12 +99,12 @@ function formatGitHubContext(searchResults) {
 /**
  * Generate a response using Claude
  */
-async function generateResponse(apiKey, userQuery, searchResults, org = DEFAULT_GITHUB_ORG, customSystemPrompt = null) {
+export async function generateResponse(apiKey, userQuery, searchResults, org = DEFAULT_GITHUB_ORG, customSystemPrompt = null) {
   const client = createClient(apiKey);
 
   const githubContext = formatGitHubContext(searchResults);
 
-  const systemPrompt = customSystemPrompt || getDefaultSystemPrompt(org);
+  const systemPrompt = customSystemPrompt || getDefaultSystemPrompt();
 
   const userMessage = `# User Question
 ${userQuery}
@@ -135,7 +135,7 @@ Please answer the user's question based on the search results above.`;
 /**
  * Extract search keywords from a user query using Claude
  */
-async function extractSearchKeywords(apiKey, userQuery) {
+export async function extractSearchKeywords(apiKey, userQuery) {
   const client = createClient(apiKey);
 
   const response = await client.messages.create({
@@ -156,9 +156,3 @@ Focus on technical terms, feature names, or specific concepts mentioned.`,
 
   return keywords;
 }
-
-module.exports = {
-  generateResponse,
-  extractSearchKeywords,
-  getDefaultSystemPrompt,
-};
