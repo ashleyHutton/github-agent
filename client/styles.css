@@ -318,8 +318,21 @@ body {
   font-size: 1.125rem;
 }
 
+.message-content h2:first-child {
+  margin-top: 0;
+}
+
 .message-content h3 {
   font-size: 1rem;
+  color: var(--accent-primary);
+}
+
+.message-content .footer-link {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.875rem;
+  color: var(--text-secondary);
 }
 
 /* Search Info */

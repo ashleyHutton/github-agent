@@ -77,14 +77,31 @@
       <div id="messages" class="messages">
         <div class="message assistant">
           <div class="message-content">
-            <p>Hello! I'm your GitHub Team Assistant. I can help you search through your team's repositories, issues, pull requests, and code.</p>
-            <p>Try asking me questions like:</p>
+            <h2>Welcome to GitHub Team Assistant</h2>
+            <p>This tool uses AI to help you search and explore any GitHub organization's repositories, issues, pull requests, and code. It's like having a knowledgeable teammate who remembers everything about your codebase.</p>
+
+            <h3>How it works</h3>
+            <p>Ask natural language questions and the assistant will search GitHub for relevant information, then summarize the results for you.</p>
+            <p><strong>Example questions:</strong></p>
             <ul>
-              <li>"Which project had the eager loading polymorphic relationship fix?"</li>
-              <li>"Show me recent PRs related to authentication"</li>
-              <li>"What issues are open about performance?"</li>
+              <li>"What's the authentication pattern used in this org?"</li>
+              <li>"Show me recent PRs related to performance"</li>
+              <li>"Which repo handles payment processing?"</li>
+              <li>"What issues are open about bug fixes?"</li>
             </ul>
-            <p><strong>Note:</strong> Please add your Anthropic API key and GitHub token in Settings before starting.</p>
+
+            <h3>Getting started</h3>
+            <p>Click <strong>Settings</strong> (gear icon) to configure:</p>
+            <ul>
+              <li><strong>Anthropic API Key</strong> - Powers the AI responses</li>
+              <li><strong>GitHub Token</strong> - Allows searching GitHub</li>
+              <li><strong>GitHub Organization</strong> - The org to search (try "basecamp" or any public org!)</li>
+            </ul>
+
+            <h3>Security</h3>
+            <p>Your API keys are stored locally in your browser's localStorage and are sent directly to Anthropic and GitHub APIs. They are <strong>never stored on our servers</strong>.</p>
+
+            <p class="footer-link">Built by <a href="https://ashleyweinaug.com" target="_blank">Ashley Weinaug</a></p>
           </div>
         </div>
       </div>
